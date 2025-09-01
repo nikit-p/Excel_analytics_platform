@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Row, Col, Form } from "react-bootstrap";
+import React, { useEffect, useRef, useState } from "react";
+import { Row, Col, Form, Button } from "react-bootstrap";
 import axios from "axios";
 import { Bar, Line, Pie, Scatter } from "react-chartjs-2";
 import {
@@ -32,6 +32,18 @@ function ChartView() {
   const [xAxis, setXAxis] = useState("");
   const [yAxis, setYAxis] = useState("");
   const [chartType, setChartType] = useState("bar");
+  const ChartRef = useRef("null");
+
+  const handleDownload = () => {
+    if (ChartRef.current) {
+      const chart = ChartRef.current;
+      const base64Image = chart.toBase64Image("image/png", 1);
+      const link = document.createElement("a");
+      link.href = base64Image;
+      link.download = `${selectedFile?.filename || "chart"}.png`;
+      link.click();
+    }
+  };
 
   useEffect(() => {
     const fetchFiles = async () => {
@@ -159,18 +171,30 @@ function ChartView() {
               width: "1200px",
               height: "500px",
               marginTop: "20px",
+              marginBottom: "200px",
             }}
           >
+            {/* Download chart as PNG */}
+            <Button
+              type="button"
+              onClick={handleDownload}
+              disabled={!chartData()}
+              variant="primary"
+              className=""
+              style={{ cursor: "pointer" }}
+            >
+              Download Chart as PNG
+            </Button>
             <Row>
               {chartData() &&
                 (chartType === "bar" ? (
-                  <Bar data={chartData()} />
+                  <Bar ref={ChartRef} data={chartData()} />
                 ) : chartType === "line" ? (
-                  <Line data={chartData()} />
+                  <Line ref={ChartRef} data={chartData()} />
                 ) : chartType === "pie" ? (
-                  <Pie data={chartData()} />
+                  <Pie ref={ChartRef} data={chartData()} />
                 ) : (
-                  <Scatter data={chartData()} />
+                  <Scatter ref={ChartRef} data={chartData()} />
                 ))}
             </Row>
           </div>
